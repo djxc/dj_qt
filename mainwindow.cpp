@@ -7,12 +7,22 @@
 #include <QTextEdit>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QTreeView>
+#include <QStandardItemModel>
+#include <QModelIndex>
+#include <QTableView>
 
 #include <qgsmaplayer.h>
 #include <qgsmapcanvas.h>
 #include <qgsvectorlayer.h>
 #include <qgsproject.h>
 #include <qgsrasterlayer.h>
+#include <qgsvectorlayercache.h>
+#include <qgsattributetableview.h>
+#include <qgsattributetablemodel.h>
+#include <qgsattributetablefiltermodel.h>
+#include <qgseditorwidgetregistry.h>
+
 /**
  * @brief MainWindow::MainWindow
  * @param parent
@@ -36,27 +46,56 @@ MainWindow::MainWindow(QWidget *parent)
 
 /**
  * @brief MainWindow::splitteLayout
- * 分割窗口布局
+ * 分割窗口布局：
+ * 1、右边为地图显示窗口；
+ * 2、左边又分为上下，上边为图层管理，下边为属性表。
  */
 void MainWindow::splitteLayout()
 {
     QSplitter *pLeftSpliter = new QSplitter(Qt::Vertical);
 
-    QWidget *layerManager = new QWidget(pLeftSpliter);
-    layerManager->setStyleSheet("background-color:#CCFF99;");
-//    QGridLayout *djlayout = new QGridLayout();
-//    map->setLayout(djlayout);
+    QTreeView *treeView = new QTreeView(pLeftSpliter);
+    treeView->setStyleSheet("background-color:#CCFF99;");
+    QStandardItemModel *model = new QStandardItemModel();
+    model->setHorizontalHeaderLabels(QStringList()<<
+                                     QStringLiteral("项目名")<<QStringLiteral("信息"));
+    QStandardItem * item = new QStandardItem(tr("item one"));//创建一个条目对象
+    model->appendRow(item);//通过模型对象添加这个条目
+    model->item(0)->appendRow(new QStandardItem(tr("item four")));
+    treeView->setModel(model);
 
 
-     QWidget *table = new QWidget(pLeftSpliter);
-     table->setStyleSheet("background-color:#FFB7DD;");
-//     QGridLayout *tableLayout = new QGridLayout();
-//     table->setLayout(tableLayout);
+     QTableView *table = new QTableView(pLeftSpliter);
+//     table->setStyleSheet("background-color:#FFB7DD;");
+
+     QStandardItemModel *tableModel = new QStandardItemModel;   //创建一个标准的条目模型
+     table->setModel(tableModel);   //将tableview设置成model这个标准条目模型的模板, model设置的内容都将显示在tableview上
+
+     tableModel->setHorizontalHeaderItem(0, new QStandardItem("姓名") );
+     tableModel->setHorizontalHeaderItem(1, new QStandardItem("学号"));
+     tableModel->setHorizontalHeaderItem(2, new QStandardItem("性别"));
+     tableModel->setHorizontalHeaderItem(3, new QStandardItem("年龄"));
+     tableModel->setHorizontalHeaderItem(4, new QStandardItem("院系"));
+     tableModel->setHorizontalHeaderItem(5, new QStandardItem("兴趣"));
+
+     table->setColumnWidth(0, 100);    //设置列的宽度
+     table->setColumnWidth(1, 150);
+     table->setColumnWidth(2, 50);
+     table->setColumnWidth(3, 50);
+     table->setColumnWidth(4, 100);
+     table->setColumnWidth(5, 150);
+
+     /*setItem设置条目栏中的一个格子的信息*/
+     tableModel->setItem(1, 5, new QStandardItem("hello world" ) );
+
+     /*设置行字段名*/
+     tableModel->setRowCount(3);
+     tableModel->setHeaderData(0,Qt::Vertical, "行0");
+     tableModel->setHeaderData(1,Qt::Vertical, "行1");
+     tableModel->setHeaderData(2,Qt::Vertical, "行2");
 
 
     QSplitter *pSpliter = new QSplitter(Qt::Horizontal);
-//    QTextEdit* pRightEdt = new QTextEdit;
-//    pRightEdt->setText(QObject::tr("右窗口"));
     canvas = new QgsMapCanvas();
 
     pSpliter->addWidget(pLeftSpliter);
@@ -90,9 +129,28 @@ void MainWindow::addMenuAndToolbar()
 
     QToolBar *fileToolBar = addToolBar(tr("&File"));
     fileToolBar->addAction(tr("new"));
-    fileToolBar->addAction(tr("add"));
+    fileToolBar->addAction(tr("打开属性表"), this, SLOT(showLayerTable()));
     fileToolBar->addAction(tr("Click"), this, SLOT(showDialog()));
 }
+
+
+/**
+ * @brief MainWindow::showLayerTable
+ * 显示图层的属性表
+ */
+void MainWindow::showLayerTable()
+{
+    QgsVectorLayerCache* lc = new QgsVectorLayerCache(
+                selectVectorLayer, selectVectorLayer->featureCount());
+    QgsAttributeTableView* tv = new QgsAttributeTableView();
+    QgsAttributeTableModel* tm = new QgsAttributeTableModel( lc );
+    QgsAttributeTableFilterModel* tfm = new QgsAttributeTableFilterModel(
+                canvas, tm, tm );
+    tm->loadLayer();
+    tv->setModel( tfm );
+    tv->show();
+}
+
 
 /**
  * @brief MainWindow::initLayout
@@ -180,6 +238,8 @@ void MainWindow::openVectorData()
     canvas->setVisible(true);
     canvas->zoomToFullExtent();
     canvas->refresh();
+//    this->showLayerTable(layer);
+    selectVectorLayer = layer;
 }
 
 /**

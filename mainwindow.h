@@ -19,6 +19,7 @@ private:
     QLineEdit *lineEdit;
     QPushButton *button;
     QgsMapCanvas *canvas;
+    QgsVectorLayer *selectVectorLayer;
     void initLayout();
     void addMenuAndToolbar();
     void splitteLayout();
@@ -29,6 +30,7 @@ private slots:
     void showArea();
     void openVectorData();
     void openRasterData();
+    void showLayerTable();
 };
 
 #endif // MAINWINDOW_H
