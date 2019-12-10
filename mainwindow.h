@@ -6,6 +6,7 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <qgsmapcanvas.h>
+#include <qgssinglesymbolrenderer.h>
 
 class MainWindow : public QMainWindow
 {
@@ -24,6 +25,7 @@ private:
     void addMenuAndToolbar();
     void splitteLayout();
     void testLayout();
+    QgsSingleSymbolRenderer* symbolPoint();
 
 private slots:
     void showDialog();

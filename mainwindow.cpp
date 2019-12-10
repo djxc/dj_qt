@@ -18,10 +18,13 @@
 #include <qgsproject.h>
 #include <qgsrasterlayer.h>
 #include <qgsvectorlayercache.h>
+#include <qgsmarkersymbollayer.h>
 #include <qgsattributetableview.h>
 #include <qgsattributetablemodel.h>
-#include <qgsattributetablefiltermodel.h>
 #include <qgseditorwidgetregistry.h>
+#include <qgsattributetablefiltermodel.h>
+#include <qgssinglesymbolrenderer.h>
+#include <qgswkbtypes.h>
 
 /**
  * @brief MainWindow::MainWindow
@@ -124,7 +127,7 @@ void MainWindow::addMenuAndToolbar()
     fileMenu->addAction(tr("矢量文件"),this,SLOT(openVectorData()));
     fileMenu->addAction(tr("柵格文件"),this,SLOT(openRasterData()));
     fileMenu->addSeparator();
-    fileMenu->addAction(tr("exit"));
+    fileMenu->addAction(tr("exit1"));
     this->setMenuBar(menuBar);
 
     QToolBar *fileToolBar = addToolBar(tr("&File"));
@@ -215,15 +218,19 @@ void MainWindow::openVectorData()
         return;
     }
 
-    QgsVectorLayer  *layer = new QgsVectorLayer(path,QFileInfo(path).completeBaseName(),"ogr");
+    QgsVectorLayer  *layer = new QgsVectorLayer(path, QFileInfo(path).completeBaseName(),"ogr");
     if (!layer->isValid())
     {
         QMessageBox::critical(this,tr("Error"),tr("Open file failed!\nReason:%1"));
         return;
     }
+    QgsWkbTypes::GeometryType type = layer->geometryType();
+    /**判断图层的几何类型，根据几何类型进行渲染*/
+    if(type == QgsWkbTypes::PointGeometry){
+        layer->setRenderer(symbolPoint());
+    }
 
     QgsMapLayer * add_layers;
-
     QList<QgsMapLayer*> myLayerSet;
 
     add_layers = QgsProject::instance()->addMapLayer(layer,true);
@@ -240,6 +247,21 @@ void MainWindow::openVectorData()
     canvas->refresh();
 //    this->showLayerTable(layer);
     selectVectorLayer = layer;
+}
+
+/**
+ * @brief MainWindow::symbolPoint
+ * 给点Point设置样式返回一个singleRender指针
+ */
+QgsSingleSymbolRenderer* MainWindow::symbolPoint(){
+    QgsSvgMarkerSymbolLayer *svgMarkSymbol = new QgsSvgMarkerSymbolLayer(tr("/home/djxc/2019/MyGIS/data/car.svg"));
+    svgMarkSymbol->setSize(8.0);
+    QgsSymbolLayerList symbolList;
+    symbolList.append(svgMarkSymbol);
+
+    QgsMarkerSymbol *markSymbol = new QgsMarkerSymbol(symbolList);
+    QgsSingleSymbolRenderer *singleRender = new QgsSingleSymbolRenderer(markSymbol);
+    return singleRender;
 }
 
 /**
