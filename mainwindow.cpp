@@ -25,6 +25,7 @@
 #include <qgsattributetablefiltermodel.h>
 #include <qgssinglesymbolrenderer.h>
 #include <qgswkbtypes.h>
+#include <qgsmaptoolpan.h>
 #include <gdal/gdal_priv.h>
 
 #include "exif.h"
@@ -44,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     resize(800, 600);
-    setWindowTitle(tr("dj地理信息系统"));
+    setWindowTitle(tr("demo地理信息系统"));       // 设置程序标题名称
     this->addMenuAndToolbar();
     //    this->initLayout();
     this->splitteLayout();
@@ -56,29 +57,24 @@ MainWindow::MainWindow(QWidget *parent)
  * 1、右边为地图显示窗口；
  * 2、左边又分为上下，上边为图层管理，下边为属性表。
  */
-void MainWindow::splitteLayout()
-{
+void MainWindow::splitteLayout() {
     QSplitter *pLeftSpliter = new QSplitter(Qt::Vertical);
 
-    // 创建treeView，需要绑定model，model提供数据。
+    // 图层管理器，创建treeView，需要绑定model，model提供数据。
     this->layerManage = new QTreeView(pLeftSpliter);
     this->layerManage->setStyleSheet("background-color:#CCFF99;");
     QStandardItemModel *model = new QStandardItemModel();
     model->setHorizontalHeaderLabels(QStringList()<<QStringLiteral("图层管理"));
-//    QStandardItem * item = new QStandardItem(tr("图层管理"));//创建一个条目对象
-//    QStandardItem * edit = new QStandardItem(tr("数据编辑"));//创建一个条目对象
-//    model->appendRow(item);//通过模型对象添加这个条目
-//    model->appendRow(edit);
-    //    model->item(0)->appendRow(new QStandardItem(tr("item four")));
     this->layerManage->setModel(model);
+    // 双击图层管理器的图层触发事件
+    connect(this->layerManage, SIGNAL(doubleClicked(const QModelIndex)), this, SLOT(treeViewClick(const QModelIndex)));
 
-
+    // 属性表
     QTableView *table = new QTableView(pLeftSpliter);
     //     table->setStyleSheet("background-color:#FFB7DD;");
 
     QStandardItemModel *tableModel = new QStandardItemModel;   //创建一个标准的条目模型
     table->setModel(tableModel);   //将tableview设置成model这个标准条目模型的模板, model设置的内容都将显示在tableview上
-
     tableModel->setHorizontalHeaderItem(0, new QStandardItem("姓名") );
     tableModel->setHorizontalHeaderItem(1, new QStandardItem("学号"));
     tableModel->setHorizontalHeaderItem(2, new QStandardItem("性别"));
@@ -116,16 +112,44 @@ void MainWindow::splitteLayout()
     pLeftSpliter->setStretchFactor(1, 1);
 
     this->setCentralWidget(pSpliter);
-    connect(this->layerManage, SIGNAL(doubleClicked(const QModelIndex)), this, SLOT(treeViewClick(const QModelIndex)));
+
 }
 
+/**
+ * 双击图层管理器中的图层名称触发该事件
+ * 1、双击图层将其zoom to layer，需要首先获取双击图层的名称，
+ * 遍历栅格图层获取与该名称一致的图层，然后将其缩放
+ * @brief MainWindow::treeViewClick
+ * @param index
+ */
 void MainWindow::treeViewClick(const QModelIndex & index) {
     QStandardItemModel *m = (QStandardItemModel *)index.model();
     for(int columnIndex = 0; columnIndex < m->columnCount(); columnIndex++)
     {
         QModelIndex x=m->index(index.row(),columnIndex);
         QString s= x.data().toString();
+        QgsMapLayer *selectedLayer;
+        foreach(QgsMapLayer *mapLayer, this->rasterLayerSet) {
+            if(s == mapLayer->name()) {
+                selectedLayer = mapLayer;
+                break;
+            }
+            qDebug()<<mapLayer->name();
+        }
+        foreach(QgsMapLayer *mapLayer, this->rasterLayerSet) {
+            if(s == mapLayer->name()) {
+                selectedLayer = mapLayer;
+                break;
+            }
+            qDebug()<<mapLayer->name();
+        }
+        if(selectedLayer) {
+            // 缩放至图层
+            this->canvas->setExtent(selectedLayer->extent());
+            this->canvas->refresh();
+        }
         qDebug()<< s;
+        qDebug()<<this->rasterLayerNum;
     }
 }
 
@@ -133,10 +157,13 @@ void MainWindow::treeViewClick(const QModelIndex & index) {
 /**
  * @brief MainWindow::addMenuAndToolbar
  * 添加菜单栏以及工具栏
+ * 1、新建菜单栏对象QMenuBar，菜单栏对象可以包含多个按钮（QMenu）；
+ * 2、个按钮又可以下拉为多个子按钮,通过addAction添加按钮的事件
  */
 void MainWindow::addMenuAndToolbar()
 {
     QMenuBar *menuBar = new QMenuBar(this);
+
     QMenu *fileMenu = menuBar->addMenu("文件");
     fileMenu->addAction(tr("open"));
     fileMenu->addAction(tr("new"));
@@ -152,6 +179,7 @@ void MainWindow::addMenuAndToolbar()
 
     this->setMenuBar(menuBar);
 
+    // 创建工具栏
     QToolBar *fileToolBar = addToolBar(tr("&File"));
     fileToolBar->addAction(tr("new"), this, SLOT(showArea()));
     fileToolBar->addAction(tr("打开属性表"), this, SLOT(showLayerTable()));
@@ -190,8 +218,10 @@ void MainWindow::readIMAGE(){
  */
 void MainWindow :: getGPSfromImage(){
     qDebug()<<tr("获取gps数据");
+    QString imagePath = QFileDialog::getOpenFileName( this, tr("选择图片"), "", "*.jpg" );
+    qDebug()<<imagePath.toStdString().c_str();
     // 读取jpg文件到缓冲区
-    FILE *fp = fopen("/home/djxc/test3.jpg", "rb");
+    FILE *fp = fopen(imagePath.toStdString().c_str(), "rb");
     if (!fp) {
         qDebug()<<tr("Can't open file.\n");
         return;
@@ -226,18 +256,22 @@ void MainWindow :: getGPSfromImage(){
                 "Camera model         : %s\n"
                 "Software             : %s\n",
                 result.Make.c_str(), result.Model.c_str(), result.Software.c_str());
-    printf("GPS Latitude         : %f deg (%f deg, %f min, %f sec %c)\n",
-           result.GeoLocation.Latitude, result.GeoLocation.LatComponents.degrees,
-           result.GeoLocation.LatComponents.minutes,
-           result.GeoLocation.LatComponents.seconds,
-           result.GeoLocation.LatComponents.direction);
-    printf("GPS Longitude        : %f deg (%f deg, %f min, %f sec %c)\n",
-           result.GeoLocation.Longitude, result.GeoLocation.LonComponents.degrees,
-           result.GeoLocation.LonComponents.minutes,
-           result.GeoLocation.LonComponents.seconds,
-           result.GeoLocation.LonComponents.direction);
-    printf("GPS Altitude         : %f m\n", result.GeoLocation.Altitude);
-    printf("GPS Precision (DOP)  : %f\n", result.GeoLocation.DOP);
+    qDebug()<<str;
+    str.sprintf("GPS Latitude         : %f deg (%f deg, %f min, %f sec %c)\n",
+                result.GeoLocation.Latitude, result.GeoLocation.LatComponents.degrees,
+                result.GeoLocation.LatComponents.minutes,
+                result.GeoLocation.LatComponents.seconds,
+                result.GeoLocation.LatComponents.direction);
+    qDebug()<<str;
+    str.sprintf("GPS Longitude        : %f deg (%f deg, %f min, %f sec %c)\n",
+                result.GeoLocation.Longitude, result.GeoLocation.LonComponents.degrees,
+                result.GeoLocation.LonComponents.minutes,
+                result.GeoLocation.LonComponents.seconds,
+                result.GeoLocation.LonComponents.direction);
+    qDebug()<<str;
+    str.sprintf("GPS Altitude         : %f m\n", result.GeoLocation.Altitude);
+    qDebug()<<str;
+    str.sprintf("GPS Precision (DOP)  : %f\n", result.GeoLocation.DOP);
     qDebug()<<str;
 
 }
@@ -353,29 +387,8 @@ void MainWindow::openVectorData()
     if(type == QgsWkbTypes::PointGeometry){
         layer->setRenderer(symbolPoint());
     }
-
-    QgsMapLayer * add_layers;
-
-    add_layers = QgsProject::instance()->addMapLayer(layer,true);
-
-    this->vectorLayerSet.push_back(layer);
-    canvas->setExtent(layer->extent());
-
-    canvas->setLayers(this->vectorLayerSet);
-    canvas->enableAntiAliasing(true);
-    canvas->setCanvasColor(QColor(100,100,100));
-    canvas->freeze(false);
-    canvas->setDragMode(QGraphicsView::RubberBandDrag);
-    canvas->setVisible(true);
-    canvas->zoomToFullExtent();
-    canvas->refresh();
-    //    this->showLayerTable(layer);
     selectVectorLayer = layer;
-    this->vectorLayerNum++;
-    QStandardItemModel *model = (QStandardItemModel*)this->layerManage->model();
-    QStandardItem * item = new QStandardItem(layer->name());//创建一个条目对象
-    model->appendRow(item);
-    this->layerManage->setModel(model);
+    this->addLayer(layer, "vector");
 }
 
 
@@ -409,22 +422,77 @@ void MainWindow::openRasterData() {
         QMessageBox::critical( this, "error", "layer is invalid" );
         return;
     }
-
-    QgsMapLayer * add_layers;
-
-    add_layers = QgsProject::instance()->addMapLayer(rasterLayer, true);
-    this->rasterLayerSet.append( rasterLayer );
-    canvas->setExtent( rasterLayer->extent() );
-    canvas->setLayers(this->rasterLayerSet);
-    canvas->setVisible( true );
-    canvas->freeze( false );
-    canvas->refresh();
-    QStandardItemModel *model = (QStandardItemModel*)this->layerManage->model();
-    QStandardItem * item = new QStandardItem(rasterLayer->name());//创建一个条目对象
-    model->appendRow(item);
-    this->layerManage->setModel(model);
+    this->addLayer(rasterLayer, "raster");
 }
 
+/**
+ * @brief MainWindow::addLayer
+ * 将图层添加到mapCanvas中
+ * 1、首先将rasterLayerNum加一
+ * 2、将图层添加到map中缩放至添加的图层
+ * 3、图层管理中添加该图层名称
+ * @param layerToAdd
+ */
+void MainWindow::addLayer(QgsMapLayer *layerToAdd, QString layer_type) {
+    QgsMapLayer * add_layers;
+    add_layers = QgsProject::instance()->addMapLayer(layerToAdd, true);
+    if(layer_type == "raster") {
+        this->rasterLayerNum++;
+        this->rasterLayerSet.append( layerToAdd );
+    }else{
+        this->vectorLayerNum++;
+        this->vectorLayerSet.append(layerToAdd);
+    }
+    canvas->setExtent( layerToAdd->extent() );
+    // 将栅格与矢量图层放在一个list中进行显示
+    QList<QgsMapLayer*> allLayers;
+    foreach(QgsMapLayer *rasterLayer, this->rasterLayerSet) {
+        allLayers.append(rasterLayer);
+    }
+    foreach(QgsMapLayer *vectorLayer, this->vectorLayerSet) {
+        allLayers.append(vectorLayer);
+    }
+    canvas->setLayers(allLayers);
+    canvas->setVisible( true );
+    canvas->freeze( false );
+    //    canvas->enableAntiAliasing(true);
+    //    canvas->setCanvasColor(QColor(100,100,100));
+    //    canvas->setDragMode(QGraphicsView::RubberBandDrag);
+    //    canvas->zoomToFullExtent();
+    canvas->refresh();
+
+    // 添加成功之后需要将栅格图层名称添加到图层管理器中
+    QStandardItemModel *model = (QStandardItemModel*)this->layerManage->model();
+    QStandardItem * item = new QStandardItem(layerToAdd->name());//创建一个条目对象
+    model->appendRow(item);
+    this->layerManage->setModel(model);
+
+
+
+
+}
+
+void MainWindow::zoomToLayer() {
+
+}
+
+
+/**
+ * @brief utilTool::openFile
+ * 打开文件对话框
+ * @param parent
+ * @param type
+ * @return
+ */
+QString MainWindow::openFile(QString type, QString title) {
+    QString path = QFileDialog::getOpenFileName(this, title,
+                                                QString(),type);
+    if (path.isEmpty())
+    {
+        return "";
+    }
+    return path;
+}
 
 MainWindow::~MainWindow()
 {

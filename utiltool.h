@@ -8,6 +8,7 @@ class utilTool
 {
 public:
     utilTool();
+    void sayHello();
     QString openFile(QWidget *parent, QString fileType);
 };
 

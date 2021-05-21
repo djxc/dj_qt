@@ -2,6 +2,12 @@
 
 utilTool::utilTool()
 {
+    printf("djxc");
+}
+
+void utilTool::sayHello()
+{
+    printf("hello");
 }
 
 /**

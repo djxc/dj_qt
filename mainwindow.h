@@ -29,6 +29,8 @@ private:
     void addMenuAndToolbar();
     void splitteLayout();
     void testLayout();
+    void zoomToLayer();
+    void addLayer(QgsMapLayer *layerToAdd, QString layer_type);
     QgsSingleSymbolRenderer* symbolPoint();
     QTreeView *layerManage;         // 树状图层管理
     int vectorLayerNum = 0;         // 矢量图层的个数
@@ -46,6 +48,7 @@ private slots:
     void treeViewClick(const QModelIndex & index);
     void readIMAGE();
     void getGPSfromImage();
+    QString openFile(QString type, QString title);
 };
 
 #endif // MAINWINDOW_H

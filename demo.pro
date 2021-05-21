@@ -53,10 +53,10 @@ LIBS += /usr/lib/x86_64-linux-gnu/libproj.so.12
 LIBS += /usr/lib/x86_64-linux-gnu/libzip.so.4
 
 #LIBS += /opt/QgisLibs_x86_64/libs_x86_64/libgeos_c.so.1.11.2
-LIBS += /usr/lib/x86_64-linux-gnu/libgeos_c.so.1.10.2
+LIBS += /usr/lib/x86_64-linux-gnu/libgeos_c.so.1.11.1
 
 #LIBS += /opt/QgisLibs_x86_64/libs_x86_64/libgeos-3.7.2.so
-LIBS += /usr/lib/x86_64-linux-gnu/libgeos-3.6.2.so
+LIBS += /usr/lib/x86_64-linux-gnu/libgeos-3.7.1.so
 
 #LIBS += /opt/QgisLibs_x86_64/libs_x86_64/libexpat.so.1.6.9
 LIBS += /usr/lib/x86_64-linux-gnu/libexpat.so
@@ -91,12 +91,10 @@ LIBS += /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    utiltool.cpp \
-    exif.cpp
+        utiltool.cpp \
+        exif.cpp
 
 HEADERS += \
         mainwindow.h \
-    utiltool.h \
-    exif.h \
-    exif.h \
-    exif.h
+        utiltool.h \
+        exif.h
