@@ -10,33 +10,41 @@
 #include <qgsmapcanvas.h>
 #include <qgssinglesymbolrenderer.h>
 
-#include "utiltool.h"
+#include "layermanager.h"
+#include "parsephotolatlon.h"
+
+QT_BEGIN_NAMESPACE
+namespace Ui { class MainWindow; }
+QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = 0);
+    MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
 private:
+    Ui::MainWindow *ui;
     QLabel *label1, *label2;
     QLineEdit *lineEdit;
     QPushButton *button;
     QgsMapCanvas *canvas;
-    QgsVectorLayer *selectVectorLayer = NULL;
     void initLayout();
     void addMenuAndToolbar();
     void splitteLayout();
     void testLayout();
     void zoomToLayer();
-    void addLayer(QgsMapLayer *layerToAdd, QString layer_type);
+    void addLayerItem(QString layer_name);
     QgsSingleSymbolRenderer* symbolPoint();
-    QTreeView *layerManage;         // 树状图层管理
-    int vectorLayerNum = 0;         // 矢量图层的个数
-    int rasterLayerNum = 0;         // 栅格图层的个数
-    QList<QgsMapLayer*> vectorLayerSet;     // 矢量图层集
-    QList<QgsMapLayer*> rasterLayerSet;     // 栅格图层集
+    QTreeView *layerManager;
+    int vectorLayerNum = 0;
+    int rasterLayerNum = 0;
+    QList<QgsMapLayer*> vectorLayerSet;
+    QList<QgsMapLayer*> rasterLayerSet;
+    LayerManager *layerManage;
+    void initApp();
 
 private slots:
     void showDialog();
@@ -50,5 +58,4 @@ private slots:
     void getGPSfromImage();
     QString openFile(QString type, QString title);
 };
-
 #endif // MAINWINDOW_H
