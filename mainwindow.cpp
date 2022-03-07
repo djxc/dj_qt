@@ -31,10 +31,11 @@
 #include "gdal_priv.h"
 #include "gdal.h"
 
+#include "addlayercommon.h"
 #include "exif.h"
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)    
+    : QMainWindow(parent)
 {    
     resize(800, 600);
     setWindowTitle(tr("GaMi GIS测试平台"));
@@ -64,9 +65,12 @@ void MainWindow::addMenuAndToolbar()
     fileMenu->addAction(tr("quit"));
 
     QMenu *dataMenu = menuBar->addMenu("数据");
+
+
+    dataMenu->addAction(tr("加载WMS图层"), this, SLOT(addWMSLayer()));
+    dataMenu->addAction(tr("加载WFS图层"), this, SLOT(addWFSLayer()));
     dataMenu->addAction(tr("读取栅格数据"), this, SLOT(readIMAGE()));
     dataMenu->addAction(tr("读照片中gps信息"), this, SLOT(getGPSfromImage()));
-
     this->setMenuBar(menuBar);
 
     // 创建工具栏
@@ -125,7 +129,7 @@ void MainWindow::splitteLayout() {
     tableModel->setHeaderData(2, Qt::Vertical, "row 2");
 
 
-    QSplitter *pSpliter = new QSplitter(Qt::Horizontal);    
+    QSplitter *pSpliter = new QSplitter(Qt::Horizontal);
 
     pSpliter->addWidget(pLeftSpliter);
     pSpliter->addWidget(canvas);
@@ -139,6 +143,30 @@ void MainWindow::splitteLayout() {
     this->setCentralWidget(pSpliter);
 
 }
+
+
+void MainWindow::addCommonLayer(int layerType)
+{
+    AddLayerCommon* addLayerCommon = new AddLayerCommon(layerType);
+    connect(addLayerCommon,
+            SIGNAL(sendLayerData(QString, QString, int)),
+            this,
+            SLOT(receiveLayerData(QString, QString, int)));
+    int result = addLayerCommon->exec();
+    qDebug() << result;
+    delete addLayerCommon;
+}
+
+void MainWindow::addWMSLayer()
+{
+    addCommonLayer(1);
+}
+
+void MainWindow::addWFSLayer()
+{
+    addCommonLayer(2);
+}
+
 
 
 /**
@@ -245,6 +273,29 @@ void MainWindow :: getGPSfromImage(){
 }
 
 /**
+ * @brief MainWindow::receiveLayerData 加载wms或wfs图层
+ * @param layerName
+ * @param layerUrl
+ * @param layerType
+ */
+void MainWindow::receiveLayerData(QString layerName, QString layerUrl, int layerType)
+{
+    qDebug("layerName: %s", qPrintable(layerName));
+    bool addResult = false;
+    switch (layerType) {
+    case 1:
+        addResult = layerManage->addWMSLayer(layerUrl, canvas, layerName);
+        break;
+    case 2:
+        addResult = layerManage->addWFSLayer(layerUrl, layerName, canvas);
+        break;
+    }
+    if (addResult) {
+        addLayerItem(layerName);
+    }
+}
+
+/**
  * 双击图层管理器中的图层名称触发该事件
  * 1、双击图层将其zoom to layer，需要首先获取双击图层的名称，
  * 遍历栅格图层获取与该名称一致的图层，然后将其缩放
@@ -323,16 +374,16 @@ void MainWindow::showLayerTable()
     } else if(selectedLayer == NULL){
         QMessageBox::warning(NULL, "消息", "您未选择图层", QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
     }else {
-//        QgsVectorLayer *vectorLayer = (QgsVectorLayer) selectedLayer->;
-//        QgsVectorLayerCache* lc = new QgsVectorLayerCache(
-//                    selectVectorLayer, selectVectorLayer->featureCount());
-//        QgsAttributeTableView* tv = new QgsAttributeTableView();
-//        QgsAttributeTableModel* tm = new QgsAttributeTableModel( lc );
-//        QgsAttributeTableFilterModel* tfm = new QgsAttributeTableFilterModel(
-//                    canvas, tm, tm );
-//        tm->loadLayer();
-//        tv->setModel( tfm );
-//        tv->show();
+        //        QgsVectorLayer *vectorLayer = (QgsVectorLayer) selectedLayer->;
+        //        QgsVectorLayerCache* lc = new QgsVectorLayerCache(
+        //                    selectVectorLayer, selectVectorLayer->featureCount());
+        //        QgsAttributeTableView* tv = new QgsAttributeTableView();
+        //        QgsAttributeTableModel* tm = new QgsAttributeTableModel( lc );
+        //        QgsAttributeTableFilterModel* tfm = new QgsAttributeTableFilterModel(
+        //                    canvas, tm, tm );
+        //        tm->loadLayer();
+        //        tv->setModel( tfm );
+        //        tv->show();
     }
 }
 
@@ -381,6 +432,20 @@ void MainWindow::initApp()
     this->addMenuAndToolbar();
     this->splitteLayout();
     this->layerManage = new LayerManager();
+    //    layerManage->addWMSLayer("url=http://localhost:8090/geoserver/nurc/wms&layers=Img_Sample&styles=&format=image/png&crs=EPSG:4326",
+    //                             canvas, "test");
+    //    QgsVectorLayer *testLayer = new QgsVectorLayer(
+    //                "http://localhost:8090/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typeName=tiger:poly_landmarks",
+    //                                             "test", "WFS");
+    //    canvas->setExtent( testLayer->extent() );
+    //    // 将栅格与矢量图层放在一个list中进行显示
+    //    QList<QgsMapLayer*> allLayers;
+    //    allLayers.append(testLayer);
+    //    canvas->setLayers(allLayers);
+    //    canvas->setVisible( true );
+    //    canvas->freeze( false );
+    //    canvas->refresh();
+
 }
 
 

@@ -45,9 +45,12 @@ private:
     QList<QgsMapLayer*> rasterLayerSet;
     LayerManager *layerManage;
     void initApp();
+    void addCommonLayer(int layerType);
 
 private slots:
     void showDialog();
+    void addWMSLayer();
+    void addWFSLayer();
     void showArea();
     void openVectorData();
     void openRasterData();
@@ -56,6 +59,7 @@ private slots:
     void treeViewClick(const QModelIndex & index);
     void readIMAGE();
     void getGPSfromImage();
+    void receiveLayerData(QString layerName, QString layerUrl, int layerType);
     QString openFile(QString type, QString title);
 };
 #endif // MAINWINDOW_H

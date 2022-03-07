@@ -19,3 +19,17 @@
 # 项目proj.db出现问题
 - 1、修改项目构建环境，PROJ_LIB修改为osgeo4w文件下的OSGeo4W64\share\proj
 - 2、gdal在osgeo4w安装时已经安装了，可以直接使用，需要在项目中添加LIBS += -L"D:\Program Files (x86)\OSGeo4W64\lib" -lgdal_i
+
+# QGIS中添加WFS图层
+- 1、WFS图层添加与矢量图层添加逻辑类似，仅需要修改类型为WFS
+```C++
+    QgsVectorLayer *testLayer = new QgsVectorLayer(
+        "http://localhost:8090/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typeName=topp:states",
+        "test", "WFS");
+```
+
+- 2、WMS图层添加，
+```c++
+    QgsRasterLayer* rasterLayer = new QgsRasterLayer("url=http://localhost:8090/geoserver/nurc/wms&layers=Img_Sample&styles=&format=image/png&crs=EPSG:4326",
+                         "name", "WMS");
+```

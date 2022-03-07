@@ -16,6 +16,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    addlayercommon.cpp \
     exif.cpp \
     layermanager.cpp \
     main.cpp \
@@ -23,12 +24,14 @@ SOURCES += \
     parsephotolatlon.cpp
 
 HEADERS += \
+    addlayercommon.h \
     layermanager.h \
     mainwindow.h\
     exif.h \
     parsephotolatlon.h
 
 FORMS += \
+    addlayercommon.ui \
     mainwindow.ui
 QT += xml
 

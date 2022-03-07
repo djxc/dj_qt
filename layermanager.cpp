@@ -13,13 +13,37 @@ LayerManager::LayerManager()
 }
 
 /**
- * @brief LayerManager::addVectorLayer
- * 打开矢量数据
+ * @brief LayerManager::addWFSLayer 打开矢量数据文件
+ * @param layerURL wfs图层url
+ * @param canvas mapcanvas
+ * @return 成功返回true否则返回false
+ */
+bool LayerManager::addWFSLayer(QString layerURL, QString layerName, QgsMapCanvas *canvas)
+{
+    QgsVectorLayer  *layer = new QgsVectorLayer(layerURL, layerName, "WFS");
+    return addCommonVectorLayer(layer, canvas);
+}
+
+/**
+ * @brief LayerManager::addVectorLayer 打开矢量数据文件
+ * @param layerPath 文件路径
+ * @param canvas mapcanvas
+ * @return 成功返回true否则返回false
  */
 bool LayerManager::addVectorLayer(QString layerPath, QgsMapCanvas *canvas)
 {
-
     QgsVectorLayer  *layer = new QgsVectorLayer(layerPath, QFileInfo(layerPath).completeBaseName(),"ogr");
+    return addCommonVectorLayer(layer, canvas);
+}
+
+/**
+ * @brief LayerManager::addCommonVectorLayer
+ * @param layer
+ * @param canvas
+ * @return
+ */
+bool LayerManager::addCommonVectorLayer(QgsVectorLayer *layer, QgsMapCanvas *canvas)
+{
     if (!layer->isValid())
     {
         return false;
@@ -36,13 +60,38 @@ bool LayerManager::addVectorLayer(QString layerPath, QgsMapCanvas *canvas)
 }
 
 /**
- * @brief LayerManager::addRasterLayer
- * 打开栅格数据
+ * @brief LayerManager::addWMSLayer 打开WMS栅格数据文件
+ * @param layerURL 图层的url
+ * @param canvas mapcanvas
+ * @param layerName 图层名称
+ * @return 成功返回true否则返回false
+ */
+bool LayerManager::addWMSLayer(QString layerURL, QgsMapCanvas *canvas, QString layerName) {
+    QgsRasterLayer* rasterLayer = new QgsRasterLayer(layerURL, layerName, "wms");
+    return addCommonRasterLayer(rasterLayer, canvas);
+}
+
+/**
+ * @brief LayerManager::addRasterLayer 打开栅格数据文件
+ * @param layerPath 文件路径
+ * @param canvas mapcanvas
+ * @return 成功返回true否则返回false
  */
 bool LayerManager::addRasterLayer(QString layerPath, QgsMapCanvas *canvas)
 {
     QgsRasterLayer* rasterLayer = new QgsRasterLayer(layerPath, QFileInfo(layerPath).completeBaseName(), "gdal");
-     qDebug()<< rasterLayer->extent();
+    return addCommonRasterLayer(rasterLayer, canvas);
+}
+
+/**
+ * @brief LayerManager::addCommonRasterLayer 通用的加载栅格图层方法
+ * @param rasterLayer 栅格图层
+ * @param canvas mapcanvas
+ * @return 成功返回true否则返回false
+ */
+bool LayerManager::addCommonRasterLayer(QgsRasterLayer* rasterLayer, QgsMapCanvas* canvas)
+{
+    qDebug()<< rasterLayer->extent();
     if ( !rasterLayer->isValid() )
     {
         return false;
@@ -50,7 +99,7 @@ bool LayerManager::addRasterLayer(QString layerPath, QgsMapCanvas *canvas)
     this->rasterLayerNum++;
     this->rasterLayerSet.append(rasterLayer);
     this->addLayer(rasterLayer, canvas);
-     qDebug()<<"获取tif数据";
+     qDebug()<<"获取数据";
     return true;
 }
 
@@ -102,11 +151,11 @@ void LayerManager::addLayer(QgsMapLayer *layerToAdd, QgsMapCanvas *canvas) {
     canvas->setExtent( layerToAdd->extent() );
     // 将栅格与矢量图层放在一个list中进行显示
     QList<QgsMapLayer*> allLayers;
-    foreach(QgsMapLayer *rasterLayer, this->rasterLayerSet) {
-        allLayers.append(rasterLayer);
-    }
     foreach(QgsMapLayer *vectorLayer, this->vectorLayerSet) {
         allLayers.append(vectorLayer);
+    }
+    foreach(QgsMapLayer *rasterLayer, this->rasterLayerSet) {
+        allLayers.append(rasterLayer);
     }
     canvas->setLayers(allLayers);
     canvas->setVisible( true );

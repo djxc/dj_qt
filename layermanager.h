@@ -21,6 +21,10 @@ public:
     void setSelectLayer(QgsMapLayer *Layer);
     QgsVectorLayerCache* getSelectedLayerCache();
 
+    bool addWMSLayer(QString layerPath, QgsMapCanvas *canvas, QString layerName);
+    bool addCommonRasterLayer(QgsRasterLayer *rasterLayer, QgsMapCanvas *canvas);
+    bool addCommonVectorLayer(QgsVectorLayer *layer, QgsMapCanvas *canvas);
+    bool addWFSLayer(QString layerURL, QString layerName, QgsMapCanvas *canvas);
 private:
     QList<QgsMapLayer*> vectorLayerSet;
     QList<QgsMapLayer*> rasterLayerSet;
