@@ -33,3 +33,8 @@
     QgsRasterLayer* rasterLayer = new QgsRasterLayer("url=http://localhost:8090/geoserver/nurc/wms&layers=Img_Sample&styles=&format=image/png&crs=EPSG:4326",
                          "name", "WMS");
 ```
+- 3、XYZ图层加载
+```
+    type=xyz&url=http://c.tile.openstreetmap.org/{z}/{x}/{y}.png
+```
+https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}

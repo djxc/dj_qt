@@ -39,7 +39,7 @@ MainWindow::MainWindow(QWidget *parent)
 {    
     resize(800, 600);
     setWindowTitle(tr("GaMi GIS测试平台"));
-    initApp();
+    initApp();    
 }
 
 
@@ -71,6 +71,16 @@ void MainWindow::addMenuAndToolbar()
     dataMenu->addAction(tr("加载WFS图层"), this, SLOT(addWFSLayer()));
     dataMenu->addAction(tr("读取栅格数据"), this, SLOT(readIMAGE()));
     dataMenu->addAction(tr("读照片中gps信息"), this, SLOT(getGPSfromImage()));
+
+    dataMenu->addAction(tr("test"), this, SLOT(test()));
+
+    // 在线地图
+    QMenu *onlineLayerMenu = menuBar->addMenu("在线地图");
+    onlineLayerMenu->addAction(tr("Spinal Map"), this, SLOT(loadSpinalMap()));
+    onlineLayerMenu->addAction(tr("forest Map"), this, SLOT(loadForestMap()));
+    onlineLayerMenu->addAction(tr("terrain"), this, SLOT(loadTerrainMap()));
+    onlineLayerMenu->addAction(tr("读照片中gps信息"), this, SLOT(getGPSfromImage()));
+
     this->setMenuBar(menuBar);
 
     // 创建工具栏
@@ -78,6 +88,14 @@ void MainWindow::addMenuAndToolbar()
     fileToolBar-> addAction(tr("new"), this, SLOT(showArea()));
     fileToolBar->addAction(tr("打开属性表"), this, SLOT(showLayerTable()));
     fileToolBar->addAction(tr("Click"), this, SLOT(showDialog("djxc")));
+
+    QStatusBar *statusBar = new QStatusBar(this);
+    xyLabel = new QLabel(statusBar);
+    xyLabel->setText("djkx");
+    statusBar->addWidget(xyLabel);
+    this->setStatusBar(statusBar);
+
+    connect(canvas, SIGNAL(xyCoordinates(QgsPointXY)), this, SLOT(showMousePoint(QgsPointXY)));
 }
 
 /**
@@ -295,6 +313,63 @@ void MainWindow::receiveLayerData(QString layerName, QString layerUrl, int layer
     }
 }
 
+void MainWindow::test()
+{
+    QList<QgsVectorLayer*>layers = layerManage->getVecotrLayers();
+    QgsVectorLayer* layer = layers[0];
+    QgsFeature f;
+    QgsFeatureIterator features = layer->getFeatures();
+    while (features.nextFeature(f)) {
+        qDebug() << f.id();
+    }
+    layer->setLabelsEnabled(true);
+    QgsFeatureIds ids = layer->selectedFeatureIds();
+    //  选择要素，qgis会将要素高亮
+    layer->select(40);
+    layer->startEditing();
+}
+
+void MainWindow::mouseMoveEvent(QMouseEvent *e)
+{
+    //鼠标移动追踪事件   显示按下坐标
+    qDebug()<<"("+QString::number(e->x())+","+QString::number(e->y())+")";
+
+}
+
+void MainWindow::loadSpinalMap()
+{
+    QString layerMapName = "spinal map";
+    bool addResult = layerManage->addOnlineMap(
+                "type=xyz&url=https://a.tile.thunderforest.com/spinal-map/{z}/{x}/{y}.png?apikey=41f4f936f1d148f69cbd100812875c88",
+                layerMapName, canvas);
+    if (addResult) {
+        addLayerItem(layerMapName);
+    }
+}
+
+void MainWindow::loadForestMap() {
+
+    QString layerMapName = "forest map";
+    bool addResult = layerManage->addOnlineMap(
+                "type=xyz&url=https://b.tile.thunderforest.com/transport-dark/{z}/{x}/{y}.png?apikey=41f4f936f1d148f69cbd100812875c88",
+                layerMapName, canvas);
+    if (addResult) {
+        addLayerItem(layerMapName);
+    }
+}
+
+void MainWindow::loadTerrainMap() {
+    QString layerName = "terrain Map";
+
+    bool addResult = layerManage->addOnlineMap(
+                "type=xyz&url=https://stamen-tiles-a.a.ssl.fastly.net/terrain/{z}/{x}/{y}.jpg",
+                layerName, canvas);
+    if (addResult) {
+        addLayerItem(layerName);
+    }
+}
+
+
 /**
  * 双击图层管理器中的图层名称触发该事件
  * 1、双击图层将其zoom to layer，需要首先获取双击图层的名称，
@@ -419,33 +494,34 @@ QString MainWindow::openFile(QString type, QString title) {
     return path;
 }
 
+void MainWindow::showMousePoint(const QgsPointXY &p)
+{
+    double xLat = p.x();
+    if (xLat <= -180) {
+        xLat = xLat + 360;
+    }
+    if (xLat >= 180) {
+        xLat = xLat - 360;
+    }
+    QString label = "lat : " + QString::number(p.y(),'f',3) + " lon : " + QString::number(xLat,'f',3);
+    xyLabel->setText(label);
+}
+
 /**
  * @brief MainWindow::initApp
  * 初始化程序
  */
 void MainWindow::initApp()
 {
-    canvas = new QgsMapCanvas();
+    canvas = new QgsMapCanvas();    
+
     QColor color;
     color.setRgb(120, 50, 200, 100);
     canvas->setCanvasColor(color);
     this->addMenuAndToolbar();
     this->splitteLayout();
     this->layerManage = new LayerManager();
-    //    layerManage->addWMSLayer("url=http://localhost:8090/geoserver/nurc/wms&layers=Img_Sample&styles=&format=image/png&crs=EPSG:4326",
-    //                             canvas, "test");
-    //    QgsVectorLayer *testLayer = new QgsVectorLayer(
-    //                "http://localhost:8090/geoserver/wfs?service=wfs&version=1.1.0&request=GetFeature&typeName=tiger:poly_landmarks",
-    //                                             "test", "WFS");
-    //    canvas->setExtent( testLayer->extent() );
-    //    // 将栅格与矢量图层放在一个list中进行显示
-    //    QList<QgsMapLayer*> allLayers;
-    //    allLayers.append(testLayer);
-    //    canvas->setLayers(allLayers);
-    //    canvas->setVisible( true );
-    //    canvas->freeze( false );
-    //    canvas->refresh();
-
+    this->setMouseTracking(true);//设置窗体追踪鼠标
 }
 
 

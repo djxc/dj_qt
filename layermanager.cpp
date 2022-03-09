@@ -24,6 +24,35 @@ bool LayerManager::addWFSLayer(QString layerURL, QString layerName, QgsMapCanvas
     return addCommonVectorLayer(layer, canvas);
 }
 
+QList<QgsRasterLayer *> LayerManager::getRasterLayers()
+{
+    return rasterLayerSet;
+}
+
+QList<QgsVectorLayer *> LayerManager::getVecotrLayers()
+{
+    return vectorLayerSet;
+}
+
+
+/**
+ * @brief LayerManager::addOnlineMap 加载在线地图
+ * @param layerUrl
+ * @param layerName
+ * @param canvas
+ * @return
+ */
+bool LayerManager::addOnlineMap(QString layerUrl, QString layerName, QgsMapCanvas *canvas)
+{
+    bool addResult = addWMSLayer(layerUrl, canvas, layerName);
+    if (addResult) {
+        qDebug() << "图层加载成功";
+    } else {
+        qDebug() << "图层加载失败";
+    }
+    return addResult;
+}
+
 /**
  * @brief LayerManager::addVectorLayer 打开矢量数据文件
  * @param layerPath 文件路径

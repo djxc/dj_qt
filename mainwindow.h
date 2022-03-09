@@ -25,9 +25,13 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+
+protected:
+    void mouseMoveEvent(QMouseEvent *e);
+
 private:
     Ui::MainWindow *ui;
-    QLabel *label1, *label2;
+    QLabel *label1, *label2, *xyLabel;
     QLineEdit *lineEdit;
     QPushButton *button;
     QgsMapCanvas *canvas;
@@ -60,6 +64,13 @@ private slots:
     void readIMAGE();
     void getGPSfromImage();
     void receiveLayerData(QString layerName, QString layerUrl, int layerType);
+    void test();
+    void loadSpinalMap();
+    void loadForestMap();
+    void loadTerrainMap();
     QString openFile(QString type, QString title);
+
+public slots:
+    void showMousePoint(const QgsPointXY &p);
 };
 #endif // MAINWINDOW_H

@@ -25,9 +25,14 @@ public:
     bool addCommonRasterLayer(QgsRasterLayer *rasterLayer, QgsMapCanvas *canvas);
     bool addCommonVectorLayer(QgsVectorLayer *layer, QgsMapCanvas *canvas);
     bool addWFSLayer(QString layerURL, QString layerName, QgsMapCanvas *canvas);
+    QList<QgsRasterLayer*> getRasterLayers();
+    QList<QgsVectorLayer*> getVecotrLayers();
+
+    bool addOnlineMap(QString layerUrl, QString layerName, QgsMapCanvas *canvas);
+
 private:
-    QList<QgsMapLayer*> vectorLayerSet;
-    QList<QgsMapLayer*> rasterLayerSet;
+    QList<QgsVectorLayer*> vectorLayerSet;
+    QList<QgsRasterLayer*> rasterLayerSet;
     void addLayer(QgsMapLayer *layerToAdd, QgsMapCanvas *canvas);
 };
 
