@@ -8,6 +8,10 @@ namespace Ui {
     class AddLayerCommon;
 }
 
+/**
+ * @brief The AddLayerCommon class
+ * 通用图层加载对象
+ */
 class AddLayerCommon : public QDialog
 {
     Q_OBJECT

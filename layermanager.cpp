@@ -180,6 +180,7 @@ void LayerManager::addLayer(QgsMapLayer *layerToAdd, QgsMapCanvas *canvas) {
     canvas->setExtent( layerToAdd->extent() );
     // 将栅格与矢量图层放在一个list中进行显示
     QList<QgsMapLayer*> allLayers;
+    allLayers.append(add_layers);
     foreach(QgsMapLayer *vectorLayer, this->vectorLayerSet) {
         allLayers.append(vectorLayer);
     }

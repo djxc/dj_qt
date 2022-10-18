@@ -72,5 +72,6 @@ private slots:
 
 public slots:
     void showMousePoint(const QgsPointXY &p);
+    void mouseClickEvent(const QKeyEvent &e);
 };
 #endif // MAINWINDOW_H

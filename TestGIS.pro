@@ -17,18 +17,22 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     addlayercommon.cpp \
+    dmapactions.cpp \
     exif.cpp \
     layermanager.cpp \
     main.cpp \
     mainwindow.cpp \
-    parsephotolatlon.cpp
+    parsephotolatlon.cpp \
+    resource.cpp
 
 HEADERS += \
     addlayercommon.h \
+    dmapactions.h \
     layermanager.h \
     mainwindow.h\
     exif.h \
-    parsephotolatlon.h
+    parsephotolatlon.h \
+    resource.h
 
 FORMS += \
     addlayercommon.ui \

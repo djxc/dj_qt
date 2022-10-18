@@ -33,6 +33,9 @@
 
 #include "addlayercommon.h"
 #include "exif.h"
+#include "resource.h"
+
+using namespace RESOURCE_CENTER;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -55,10 +58,10 @@ void MainWindow::addMenuAndToolbar()
     QMenuBar *menuBar = new QMenuBar(this);
 
     QMenu *fileMenu = menuBar->addMenu("文件");
-    fileMenu->addAction(tr("打开"));
-    fileMenu->addAction(tr("新建"));
-    fileMenu->addAction(tr("矢量文件"),this,SLOT(openVectorData()));
-    fileMenu->addAction(tr("栅格文件"), this, SLOT(openRasterData()));
+    fileMenu->addAction(open_ttl);
+    fileMenu->addAction(new_ttl);
+    fileMenu->addAction(vector_layer_ttl,this,SLOT(openVectorData()));
+    fileMenu->addAction(raster_layer_ttl, this, SLOT(openRasterData()));
     fileMenu->addSeparator();
     fileMenu->addAction(tr("close"), this, SLOT(closeAllLayers()));
 
@@ -96,6 +99,7 @@ void MainWindow::addMenuAndToolbar()
     this->setStatusBar(statusBar);
 
     connect(canvas, SIGNAL(xyCoordinates(QgsPointXY)), this, SLOT(showMousePoint(QgsPointXY)));
+    connect(canvas, SIGNAL(keyPressed(QKeyEvent)), this, SLOT(mouseClickEvent(QKeyEvent)));
 }
 
 /**
@@ -175,11 +179,19 @@ void MainWindow::addCommonLayer(int layerType)
     delete addLayerCommon;
 }
 
+/**
+ * @brief MainWindow::addWMSLayer
+ * 加载wms图层
+ */
 void MainWindow::addWMSLayer()
 {
     addCommonLayer(1);
 }
 
+/**
+ * @brief MainWindow::addWFSLayer
+ * 加载wfs图层
+ */
 void MainWindow::addWFSLayer()
 {
     addCommonLayer(2);
@@ -234,7 +246,7 @@ void MainWindow::addLayerItem(QString layer_name) {
     // 添加成功之后需要将栅格图层名称添加到图层管理器中
     QStandardItemModel *model = (QStandardItemModel*)this->layerManager->model();
     QStandardItem * item = new QStandardItem(layer_name);//创建一个条目对象
-    model->appendRow(item);
+    model->insertRow(0, item);
     this->layerManager->setModel(model);
 }
 
@@ -503,8 +515,13 @@ void MainWindow::showMousePoint(const QgsPointXY &p)
     if (xLat >= 180) {
         xLat = xLat - 360;
     }
-    QString label = "lat : " + QString::number(p.y(),'f',3) + " lon : " + QString::number(xLat,'f',3);
+    QString label = "纬度 : " + QString::number(p.y(),'f',3) + " 经度 : " + QString::number(xLat,'f',3);
     xyLabel->setText(label);
+}
+
+void MainWindow::mouseClickEvent(const QKeyEvent &e)
+{
+    qDebug() << e.text();
 }
 
 /**
@@ -513,7 +530,7 @@ void MainWindow::showMousePoint(const QgsPointXY &p)
  */
 void MainWindow::initApp()
 {
-    canvas = new QgsMapCanvas();    
+    canvas = new QgsMapCanvas();
 
     QColor color;
     color.setRgb(120, 50, 200, 100);
