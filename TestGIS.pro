@@ -23,6 +23,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     parsephotolatlon.cpp \
+    point_symbol.cpp \
     resource.cpp
 
 HEADERS += \
@@ -32,6 +33,7 @@ HEADERS += \
     mainwindow.h\
     exif.h \
     parsephotolatlon.h \
+    point_symbol.h \
     resource.h
 
 FORMS += \

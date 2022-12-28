@@ -1,4 +1,4 @@
-# 利用osgeo4w安装qgis开发环境
+﻿# 利用osgeo4w安装qgis开发环境
 - 1、首先安装osgeo4w，选择qgis，勾选libs下的所有。
 - 2、不采用osgeo4w自带的qt，自己重新安装qt与qtceator（利用vs没有搞定）
 - 3、在项目环境中配置osgeo4w的依赖，并将一些dll库放在release文件夹下，不然会包找不到xxx.dll库错误。
@@ -38,3 +38,12 @@
     type=xyz&url=http://c.tile.openstreetmap.org/{z}/{x}/{y}.png
 ```
 https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}
+
+
+# 加载图层时报错 proj_identify: Cannot find proj.db
+在项目中添加运行环境变量PROJ_LIB=D:\Program Files (x86)\OSGeo4W64\share\proj即可解决问题
+
+# 编译时报错，常量中有换行符
+1、首先需要在工具-》选项-》文件编辑器 文件编码修改为”如果编码是UTF-8则添加“
+2、菜单栏->编辑->Slect Encoding...->UTF-8->按编码保存、
+3、在需要的头文件中加入#pragma execution_character_set("utf-8")即可

@@ -1,4 +1,5 @@
 #include "layermanager.h"
+#include "point_symbol.h"
 
 #include <qfiledialog.h>
 #include <qgsproject.h>
@@ -80,11 +81,13 @@ bool LayerManager::addCommonVectorLayer(QgsVectorLayer *layer, QgsMapCanvas *can
     QgsWkbTypes::GeometryType type = layer->geometryType();
     /**判断图层的几何类型，根据几何类型进行渲染*/
     if(type == QgsWkbTypes::PointGeometry){
-//        layer->setRenderer(symbolPoint());
+        qDebug()<<"点状要素";
+        PointSymbol *pointSymbol = new PointSymbol();
+        layer->setRenderer(pointSymbol->createPictureSymbol("D://Graphite.png"));
     }
+    this->addLayer(layer, canvas);
     this->vectorLayerNum++;
     this->vectorLayerSet.append(layer);
-    this->addLayer(layer, canvas);
     return true;
 }
 
@@ -125,9 +128,9 @@ bool LayerManager::addCommonRasterLayer(QgsRasterLayer* rasterLayer, QgsMapCanva
     {
         return false;
     }
+    this->addLayer(rasterLayer, canvas);
     this->rasterLayerNum++;
     this->rasterLayerSet.append(rasterLayer);
-    this->addLayer(rasterLayer, canvas);
      qDebug()<<"获取数据";
     return true;
 }

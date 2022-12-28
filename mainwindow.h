@@ -1,3 +1,4 @@
+﻿#pragma execution_character_set("utf-8")
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -43,10 +44,6 @@ private:
     void addLayerItem(QString layer_name);
     QgsSingleSymbolRenderer* symbolPoint();
     QTreeView *layerManager;
-    int vectorLayerNum = 0;
-    int rasterLayerNum = 0;
-    QList<QgsMapLayer*> vectorLayerSet;
-    QList<QgsMapLayer*> rasterLayerSet;
     LayerManager *layerManage;
     void initApp();
     void addCommonLayer(int layerType);

@@ -1,3 +1,4 @@
+﻿#pragma execution_character_set("utf-8")
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -63,13 +64,12 @@ void MainWindow::addMenuAndToolbar()
     fileMenu->addAction(vector_layer_ttl,this,SLOT(openVectorData()));
     fileMenu->addAction(raster_layer_ttl, this, SLOT(openRasterData()));
     fileMenu->addSeparator();
-    fileMenu->addAction(tr("close"), this, SLOT(closeAllLayers()));
+    fileMenu->addAction(close_all_layer_ttl, this, SLOT(closeAllLayers()));
 
     fileMenu->addAction(tr("quit"));
 
+    // 数据
     QMenu *dataMenu = menuBar->addMenu("数据");
-
-
     dataMenu->addAction(tr("加载WMS图层"), this, SLOT(addWMSLayer()));
     dataMenu->addAction(tr("加载WFS图层"), this, SLOT(addWFSLayer()));
     dataMenu->addAction(tr("读取栅格数据"), this, SLOT(readIMAGE()));
@@ -116,7 +116,7 @@ void MainWindow::splitteLayout() {
     this->layerManager->setStyleSheet("background-color:#CCFF99;");
 
     QStandardItemModel *model = new QStandardItemModel();
-    model->setHorizontalHeaderLabels(QStringList()<<QStringLiteral("layer Manager"));
+    model->setHorizontalHeaderLabels(QStringList()<<layer_manage_ttl);
     this->layerManager->setModel(model);
     // 双击图层管理器的图层触发事件
     connect(this->layerManager, SIGNAL(doubleClicked(const QModelIndex)), this, SLOT(treeViewClick(const QModelIndex)));
@@ -393,30 +393,27 @@ void MainWindow::treeViewClick(const QModelIndex & index) {
     QStandardItemModel *m = (QStandardItemModel *)index.model();
     for(int columnIndex = 0; columnIndex < m->columnCount(); columnIndex++)
     {
-        QModelIndex x=m->index(index.row(),columnIndex);
-        QString s= x.data().toString();
-        QgsMapLayer *selectedLayer;
-        foreach(QgsMapLayer *mapLayer, this->rasterLayerSet) {
+        QModelIndex x = m->index(index.row(),columnIndex);
+        QString s = x.data().toString();
+        QgsMapLayer *selectedLayer = NULL;
+        foreach(QgsMapLayer *mapLayer, this->layerManage->getRasterLayers()) {
             if(s == mapLayer->name()) {
                 selectedLayer = mapLayer;
                 break;
             }
-            qDebug()<<mapLayer->name();
         }
-        foreach(QgsMapLayer *mapLayer, this->rasterLayerSet) {
+
+        foreach(QgsMapLayer *mapLayer, this->layerManage->getVecotrLayers()) {
             if(s == mapLayer->name()) {
                 selectedLayer = mapLayer;
                 break;
             }
-            qDebug()<<mapLayer->name();
         }
         if(selectedLayer) {
             // 缩放至图层
             this->canvas->setExtent(selectedLayer->extent());
             this->canvas->refresh();
         }
-        qDebug()<< s;
-        qDebug()<<this->rasterLayerNum;
     }
 }
 
@@ -442,11 +439,17 @@ QgsSingleSymbolRenderer* MainWindow::symbolPoint(){
  */
 void MainWindow::closeAllLayers()
 {
-    qDebug()<< this->rasterLayerSet;
-    qDebug()<< this->vectorLayerSet;
-    this->rasterLayerSet.clear();
-    this->vectorLayerSet.clear();
-    this->canvas->setLayers(this->rasterLayerSet);
+    this->layerManage->getRasterLayers().clear();
+    this->layerManage->getVecotrLayers().clear();
+    QList<QgsMapLayer*> allLayers;
+    canvas->setLayers(allLayers);
+    canvas->setVisible( true );
+    canvas->freeze( false );
+    canvas->refresh();
+    // 清空图层管理的内容
+    QStandardItemModel *model = new QStandardItemModel();
+    model->setHorizontalHeaderLabels(QStringList()<<layer_manage_ttl);
+    this->layerManager->setModel(model);
 }
 /**
  * @brief MainWindow::showLayerTable
