@@ -113,7 +113,7 @@ void MainWindow::splitteLayout() {
 
     // 图层管理器，创建treeView，需要绑定model，model提供数据。
     this->layerManager = new QTreeView(pLeftSpliter);
-    this->layerManager->setStyleSheet("background-color:#CCFF99;");
+    this->layerManager->setStyleSheet("background-color:#AEEEEE;");
 
     QStandardItemModel *model = new QStandardItemModel();
     model->setHorizontalHeaderLabels(QStringList()<<layer_manage_ttl);
@@ -536,10 +536,15 @@ void MainWindow::initApp()
     canvas = new QgsMapCanvas();
 
     QColor color;
-    color.setRgb(120, 50, 200, 100);
+    color.setRgb(120, 50, 200, 10);
     canvas->setCanvasColor(color);
     this->addMenuAndToolbar();
     this->splitteLayout();
+
+    // 添加pan控件，使图层可以用鼠标左键拖动
+    QgsMapToolPan* tool = new QgsMapToolPan(canvas);
+    canvas->setMapTool(tool);
+
     this->layerManage = new LayerManager();
     this->setMouseTracking(true);//设置窗体追踪鼠标
 }

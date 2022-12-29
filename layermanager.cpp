@@ -6,6 +6,8 @@
 #include <qgsrasterlayer.h>
 #include <qgsvectorlayer.h>
 #include <qmessagebox.h>
+#include "qgspallabeling.h"
+#include "qgsvectorlayerlabeling.h"
 
 LayerManager::LayerManager()
 {
@@ -83,11 +85,20 @@ bool LayerManager::addCommonVectorLayer(QgsVectorLayer *layer, QgsMapCanvas *can
     if(type == QgsWkbTypes::PointGeometry){
         qDebug()<<"点状要素";
         PointSymbol *pointSymbol = new PointSymbol();
-        layer->setRenderer(pointSymbol->createPictureSymbol("D://Graphite.png"));
+        layer->setRenderer(pointSymbol->createPictureSymbol("D:\\car.svg"));
     }
     this->addLayer(layer, canvas);
     this->vectorLayerNum++;
     this->vectorLayerSet.append(layer);
+
+    // 添加label
+    QgsPalLayerSettings layerSettings;
+    layerSettings.drawLabels = true;
+    layerSettings.fieldName = layer->fields()[0].name();
+    QgsVectorLayerSimpleLabeling * labeling = new QgsVectorLayerSimpleLabeling (layerSettings);
+    layer->setLabeling(labeling);
+    layer->setLabelsEnabled(true);
+
     return true;
 }
 

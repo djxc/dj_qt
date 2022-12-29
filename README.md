@@ -47,3 +47,6 @@ https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={
 1、首先需要在工具-》选项-》文件编辑器 文件编码修改为”如果编码是UTF-8则添加“
 2、菜单栏->编辑->Slect Encoding...->UTF-8->按编码保存、
 3、在需要的头文件中加入#pragma execution_character_set("utf-8")即可
+
+# 重装系统后找不到msvc2017编译器
+其实在windows下qt可以采用minGW与msvc两种编译器，但qgis中的依赖均为lib形式因此必须使用msvc编译器。因此在windows下开发qgis需要安装vs。
